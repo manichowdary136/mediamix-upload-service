@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="RemoteRepositoriesConfiguration">
+    <remote-repository>
+      <option name="id" value="rpm-release" />
+      <option name="name" value="rpm-release" />
+      <option name="url" value="https://analytics.iriworldwide.com/nexus/repository/rpm-release/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="devops-srpm" />
+      <option name="name" value="devops-srpm" />
+      <option name="url" value="https://analytics.iriworldwide.com/nexus/repository/devops-srpm/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="project-snapshot" />
+      <option name="name" value="project-snapshot" />
+      <option name="url" value="https://analytics.iriworldwide.com/nexus/repository/project-snapshot/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="plugins-snapshot" />
+      <option name="name" value="plugins-snapshot" />
+      <option name="url" value="https://analytics.iriworldwide.com/nexus/repository/plugins-snapshot/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="project-release" />
+      <option name="name" value="project-release" />
+      <option name="url" value="https://analytics.iriworldwide.com/nexus/repository/project-release/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="ext-snapshot" />
+      <option name="name" value="ext-snapshot" />
+      <option name="url" value="https://analytics.iriworldwide.com/nexus/repository/ext-snapshot/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="irireleases" />
+      <option name="name" value="IRI Releases" />
+      <option name="url" value="https://analytics.iriworldwide.com/nexus/repository/releases/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="central" />
+      <option name="name" value="Maven Central repository" />
+      <option name="url" value="https://repo1.maven.org/maven2" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="irisnapshots" />
+      <option name="name" value="IRI Snapshots" />
+      <option name="url" value="https://analytics.iriworldwide.com/nexus/repository/snapshots/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="ext-release" />
+      <option name="name" value="ext-release" />
+      <option name="url" value="https://analytics.iriworldwide.com/nexus/repository/ext-release/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="plugins-release" />
+      <option name="name" value="plugins-release" />
+      <option name="url" value="https://analytics.iriworldwide.com/nexus/repository/plugins-release/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="rpm-snapshot" />
+      <option name="name" value="rpm-snapshot" />
+      <option name="url" value="https://analytics.iriworldwide.com/nexus/repository/rpm-snapshot/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="jboss.community" />
+      <option name="name" value="JBoss Community repository" />
+      <option name="url" value="https://repository.jboss.org/nexus/content/repositories/public/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="central" />
+      <option name="name" value="Central" />
+      <option name="url" value="https://analytics.iriworldwide.com/nexus/repository/releases/" />
+    </remote-repository>
+  </component>
+</project>
