@@ -57,6 +57,11 @@
       <option name="url" value="https://analytics.iriworldwide.com/nexus/repository/plugins-release/" />
     </remote-repository>
     <remote-repository>
+      <option name="id" value="central" />
+      <option name="name" value="Central Repository" />
+      <option name="url" value="https://analytics.iriworldwide.com/nexus/repository/releases/" />
+    </remote-repository>
+    <remote-repository>
       <option name="id" value="rpm-snapshot" />
       <option name="name" value="rpm-snapshot" />
       <option name="url" value="https://analytics.iriworldwide.com/nexus/repository/rpm-snapshot/" />

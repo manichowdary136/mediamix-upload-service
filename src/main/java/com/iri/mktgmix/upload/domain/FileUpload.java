@@ -1,62 +1,66 @@
 package com.iri.mktgmix.upload.domain;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.time.LocalDateTime;
 
-@Getter
-@Setter
+@Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@ToString
 @Table(schema = "app", name = "file_upload")
 public class FileUpload {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
     private Long id;
 
-    @Column(name = "upload_session_id", nullable = false)
-    private Long uploadSessionId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "project_id", referencedColumnName = "project_id", nullable = false)
+    private ProjectDetails project;
 
-    @Column(name = "project_id", nullable = false)
-    private Long projectId;
-
-    @Column(name = "original_file_name", nullable = false, length = 255)
+    @Column(name = "original_file_name", nullable = false)
     private String originalFileName;
 
-    @Column(name = "file_size_bytes", nullable = false)
+    @Column(name = "file_size_bytes")
     private Long fileSizeBytes;
 
-    @Column(name = "total_chunks")
-    private Integer totalChunks;
+    @Column(name = "mime_type", length = 100)
+    private String mimeType;
 
-    @Column(name = "uploaded_chunks")
-    private Integer uploadedChunks;
+    @Column(name = "bytes_received", nullable = false)
+    private Long bytesReceived;
+
+    @Column(name = "upload_etag", length = 64)
+    private String uploadEtag;
+
+    @Column(name = "checksum_sha256", length = 64)
+    private String checksumSha256;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "upload_status", nullable = false, length = 16)
+    @Column(name = "upload_status", nullable = false)
     private FileUploadStatus uploadStatus;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "ingest_status")
+    private FileIngestStatus ingestStatus;
+
+    @Column(name = "monet_table_name")
+    private String monetTableName;
+
+    @Column(name = "row_count", nullable = false)
+    private Long rowCount = 0L;
+
+    @Column(name = "ingested_at")
+    private LocalDateTime ingestedAt;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     @Column(name = "created_user_id", length = 100)
-    private String createdUserId;
+    private String createdById;
 
     @Column(name = "created_by", nullable = false, length = 100)
     private String createdBy;
@@ -65,9 +69,10 @@ public class FileUpload {
     private LocalDateTime modifiedAt;
 
     @Column(name = "modified_user_id", length = 100)
-    private String modifiedUserId;
+    private String modifiedById;
 
     @Column(name = "modified_by", length = 100)
     private String modifiedBy;
+
 }
 
