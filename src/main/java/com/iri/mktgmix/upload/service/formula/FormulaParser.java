@@ -2,10 +2,6 @@ package com.iri.mktgmix.upload.service.formula;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Supplier;
 
 /**
  * Simple recursive descent parser that turns spreadsheet-like formulas into an abstract syntax tree (AST).
@@ -144,10 +140,15 @@ final class FormulaParser {
 
     private static List<Token> tokenize(String formula) {
         List<Token> tokens = new ArrayList<>();
-        if (formula == null || formula.isBlank()) {
-            return List.of(new Token(TokenType.EOF, ""));
+        if (formula == null) {
+            tokens.add(new Token(TokenType.EOF, ""));
+            return tokens;
         }
         String input = formula.trim();
+        if (input.isEmpty()) {
+            tokens.add(new Token(TokenType.EOF, ""));
+            return tokens;
+        }
         if (input.startsWith("=")) {
             input = input.substring(1);
         }
@@ -160,47 +161,47 @@ final class FormulaParser {
                 continue;
             }
             switch (current) {
-                case '+' -> {
+                case '+':
                     tokens.add(new Token(TokenType.PLUS, "+"));
                     index++;
-                }
-                case '-' -> {
+                    break;
+                case '-':
                     tokens.add(new Token(TokenType.MINUS, "-"));
                     index++;
-                }
-                case '*' -> {
+                    break;
+                case '*':
                     tokens.add(new Token(TokenType.STAR, "*"));
                     index++;
-                }
-                case '/' -> {
+                    break;
+                case '/':
                     tokens.add(new Token(TokenType.SLASH, "/"));
                     index++;
-                }
-                case '(' -> {
+                    break;
+                case '(':
                     tokens.add(new Token(TokenType.LEFT_PAREN, "("));
                     index++;
-                }
-                case ')' -> {
+                    break;
+                case ')':
                     tokens.add(new Token(TokenType.RIGHT_PAREN, ")"));
                     index++;
-                }
-                case ',' -> {
+                    break;
+                case ',':
                     tokens.add(new Token(TokenType.COMMA, ","));
                     index++;
-                }
-                case '"' -> {
-                    int closing = readStringLiteral(input, index + 1, '"');
-                    String literal = input.substring(index, closing + 1);
-                    tokens.add(new Token(TokenType.STRING, literal));
-                    index = closing + 1;
-                }
-                case '\'' -> {
-                    int closing = readStringLiteral(input, index + 1, '\'');
-                    String literal = input.substring(index, closing + 1);
-                    tokens.add(new Token(TokenType.STRING, literal));
-                    index = closing + 1;
-                }
-                default -> {
+                    break;
+                case '"':
+                    int closingDouble = readStringLiteral(input, index + 1, '"');
+                    String literalDouble = input.substring(index, closingDouble + 1);
+                    tokens.add(new Token(TokenType.STRING, literalDouble));
+                    index = closingDouble + 1;
+                    break;
+                case '\'':
+                    int closingSingle = readStringLiteral(input, index + 1, '\'');
+                    String literalSingle = input.substring(index, closingSingle + 1);
+                    tokens.add(new Token(TokenType.STRING, literalSingle));
+                    index = closingSingle + 1;
+                    break;
+                default:
                     if (Character.isDigit(current) || current == '.') {
                         int start = index;
                         index = readNumber(input, index);
@@ -212,7 +213,7 @@ final class FormulaParser {
                     } else {
                         throw new FormulaTranslationException("Unsupported character in formula: " + current);
                     }
-                }
+                    break;
             }
         }
         tokens.add(new Token(TokenType.EOF, ""));
@@ -285,7 +286,22 @@ final class FormulaParser {
         EOF
     }
 
-    record Token(TokenType type, String lexeme) {
+    static final class Token {
+        private final TokenType type;
+        private final String lexeme;
+
+        Token(TokenType type, String lexeme) {
+            this.type = type;
+            this.lexeme = lexeme;
+        }
+
+        TokenType type() {
+            return type;
+        }
+
+        String lexeme() {
+            return lexeme;
+        }
     }
 
     interface Expression {
