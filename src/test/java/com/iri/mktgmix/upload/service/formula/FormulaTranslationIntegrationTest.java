@@ -26,7 +26,7 @@ import static org.assertj.core.api.Assumptions.assumeThat;
 @TestPropertySource(properties = {
     "spring.datasource.url=${MONETDB_URL:jdbc:monetdb://localhost:50000/testdb}",
     "spring.datasource.username=${MONETDB_USER:monetdb}",
-    "spring.datasource.password=${MONETDB_PASSWORD:monetdb}",
+    "spring.datasource.password=${MONETDB_PASSWORD:test123}",
     "spring.datasource.driver-class-name=nl.cwi.monetdb.jdbc.MonetDriver"
 })
 public class FormulaTranslationIntegrationTest {
