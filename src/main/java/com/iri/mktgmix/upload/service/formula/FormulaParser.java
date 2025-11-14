@@ -27,7 +27,17 @@ final class FormulaParser {
     }
 
     private Expression parseExpression() {
-        return parseAddition();
+        return parseComparison();
+    }
+
+    private Expression parseComparison() {
+        Expression expression = parseAddition();
+        while (match(TokenType.GREATER, TokenType.LESS, TokenType.GREATER_EQUAL, TokenType.LESS_EQUAL, TokenType.EQUAL, TokenType.NOT_EQUAL)) {
+            Token operator = previous();
+            Expression right = parseAddition();
+            expression = new BinaryExpression(expression, operator, right);
+        }
+        return expression;
     }
 
     private Expression parseAddition() {
@@ -189,6 +199,39 @@ final class FormulaParser {
                     tokens.add(new Token(TokenType.COMMA, ","));
                     index++;
                     break;
+                case '>':
+                    if (index + 1 < length && input.charAt(index + 1) == '=') {
+                        tokens.add(new Token(TokenType.GREATER_EQUAL, ">="));
+                        index += 2;
+                    } else {
+                        tokens.add(new Token(TokenType.GREATER, ">"));
+                        index++;
+                    }
+                    break;
+                case '<':
+                    if (index + 1 < length && input.charAt(index + 1) == '=') {
+                        tokens.add(new Token(TokenType.LESS_EQUAL, "<="));
+                        index += 2;
+                    } else if (index + 1 < length && input.charAt(index + 1) == '>') {
+                        tokens.add(new Token(TokenType.NOT_EQUAL, "<>"));
+                        index += 2;
+                    } else {
+                        tokens.add(new Token(TokenType.LESS, "<"));
+                        index++;
+                    }
+                    break;
+                case '=':
+                    tokens.add(new Token(TokenType.EQUAL, "="));
+                    index++;
+                    break;
+                case '!':
+                    if (index + 1 < length && input.charAt(index + 1) == '=') {
+                        tokens.add(new Token(TokenType.NOT_EQUAL, "!="));
+                        index += 2;
+                    } else {
+                        throw new FormulaTranslationException("Unsupported character in formula: " + current);
+                    }
+                    break;
                 case '"':
                     int closingDouble = readStringLiteral(input, index + 1, '"');
                     String literalDouble = input.substring(index, closingDouble + 1);
@@ -280,6 +323,12 @@ final class FormulaParser {
         MINUS,
         STAR,
         SLASH,
+        GREATER,
+        LESS,
+        GREATER_EQUAL,
+        LESS_EQUAL,
+        EQUAL,
+        NOT_EQUAL,
         LEFT_PAREN,
         RIGHT_PAREN,
         COMMA,

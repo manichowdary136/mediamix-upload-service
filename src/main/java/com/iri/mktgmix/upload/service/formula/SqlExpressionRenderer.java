@@ -96,6 +96,18 @@ final class SqlExpressionRenderer implements ExpressionVisitor<String> {
                 return "*";
             case SLASH:
                 return "/";
+            case GREATER:
+                return ">";
+            case LESS:
+                return "<";
+            case GREATER_EQUAL:
+                return ">=";
+            case LESS_EQUAL:
+                return "<=";
+            case EQUAL:
+                return "=";
+            case NOT_EQUAL:
+                return "<>";
             default:
                 throw new FormulaTranslationException("Unsupported operator: " + operator.lexeme());
         }
