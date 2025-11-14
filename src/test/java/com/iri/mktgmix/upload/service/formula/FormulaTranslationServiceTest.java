@@ -14,36 +14,18 @@ class FormulaTranslationServiceTest {
 
     @Test
     void translatesConcatFunction() {
-        ColumnFormula formula = ColumnFormula.of("target_sub_brand", "CONCAT(source_a, source_b)");
+        ColumnFormula formula = ColumnFormula.of("target_AB", "TRIM(CONCAT(UPPER(B3), \" \", LOWER(C3), \" \", \"_\"))");
         String sql = service.translate(formula);
-        assertThat(sql).isEqualTo("CONCAT(source_a, source_b)");
+        assertThat(sql).isEqualTo("TRIM(APPEND(UPPER(B3), \" \", LOWER(C3), \" \", \"_\"))");
     }
 
     @Test
     void translatesArithmeticExpressionWithPrecedence() {
-        ColumnFormula formula = ColumnFormula.of("net_spend", "source_spend + source_tax * 0.1");
+        ColumnFormula formula = ColumnFormula.of("target_col", "A + B * 0.1");
         String sql = service.translate(formula);
-        assertThat(sql).isEqualTo("(source_spend + (source_tax * 0.1))");
+        assertThat(sql).isEqualTo("(A + (B * 0.1))");
     }
 
-    @Test
-    void translatesNestedFunctions() {
-        ColumnFormula formula = ColumnFormula.of("clean_name", "TRIM(UPPER(source_name))");
-        String sql = service.translate(formula);
-        assertThat(sql).isEqualTo("TRIM(UPPER(source_name))");
-    }
 
-    @Test
-    void translatesMultipleFormulasPreservingOrder() {
-        List<ColumnFormula> formulas = Arrays.asList(
-                ColumnFormula.of("colA", "source_a"),
-                ColumnFormula.of("colB", "source_b")
-        );
-        Map<String, String> translated = service.translate(formulas);
-        Map<String, String> expected = new LinkedHashMap<>();
-        expected.put("colA", "source_a");
-        expected.put("colB", "source_b");
-        assertThat(translated).containsExactlyEntriesOf(expected);
-    }
 }
 

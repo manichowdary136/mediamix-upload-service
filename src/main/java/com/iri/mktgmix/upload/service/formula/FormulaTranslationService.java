@@ -9,8 +9,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * Facade responsible for translating spreadsheet formulas into SQL fragments.
- * Uses a light-weight interpreter AST internally and delegates function rendering to strategies.
+ * Service layer responsible for translating spreadsheet formulas into SQL fragments.
  */
 public final class FormulaTranslationService {
 
@@ -26,8 +25,6 @@ public final class FormulaTranslationService {
 
     /**
      * Translates a list of formulas into SQL fragments.
-     * @param formulas formulas keyed by target column
-     * @return ordered map with a SQL fragment per target column
      */
     public Map<String, String> translate(List<ColumnFormula> formulas) {
         Objects.requireNonNull(formulas, "formulas must not be null");

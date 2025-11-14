@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Simple recursive descent parser that turns spreadsheet-like formulas into an abstract syntax tree (AST).
- * The resulting AST can subsequently be rendered as SQL.
+ * Simple recursive descent parser that turns spreadsheet-like formulas
+ * The result of parser can subsequently be rendered as SQL.
  */
 final class FormulaParser {
 
@@ -112,7 +112,7 @@ final class FormulaParser {
     }
 
     private boolean check(TokenType type) {
-        return !isAtEnd() && peek().type() == type;
+        return peek().type() == type;
     }
 
     private Token advance() {

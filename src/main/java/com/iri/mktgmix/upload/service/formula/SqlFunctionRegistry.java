@@ -19,24 +19,31 @@ public final class SqlFunctionRegistry {
 
     public static SqlFunctionRegistry withDefaults() {
         Map<String, SqlFunction> strategies = new LinkedHashMap<>();
-        strategies.put("CONCAT", arguments -> "CONCAT(" + String.join(", ", arguments) + ")");
-        strategies.put("TRIM", arguments -> "TRIM(" + joinArguments(arguments, 1) + ")");
-        strategies.put("LTRIM", arguments -> "LTRIM(" + joinArguments(arguments, 1) + ")");
-        strategies.put("RTRIM", arguments -> "RTRIM(" + joinArguments(arguments, 1) + ")");
-        strategies.put("UPPER", arguments -> "UPPER(" + joinArguments(arguments, 1) + ")");
-        strategies.put("LOWER", arguments -> "LOWER(" + joinArguments(arguments, 1) + ")");
-        strategies.put("SUBSTRING", arguments -> "SUBSTRING(" + String.join(", ", arguments) + ")");
-        strategies.put("COALESCE", arguments -> "COALESCE(" + String.join(", ", arguments) + ")");
-        strategies.put("ROUND", arguments -> round(arguments));
-        strategies.put("ABS", arguments -> "ABS(" + joinArguments(arguments, 1) + ")");
-        strategies.put("FLOOR", arguments -> "FLOOR(" + joinArguments(arguments, 1) + ")");
-        strategies.put("CEIL", arguments -> "CEIL(" + joinArguments(arguments, 1) + ")");
-        strategies.put("POWER", arguments -> "POWER(" + String.join(", ", arguments) + ")");
-        strategies.put("GREATEST", arguments -> "GREATEST(" + String.join(", ", arguments) + ")");
-        strategies.put("LEAST", arguments -> "LEAST(" + String.join(", ", arguments) + ")");
-        strategies.put("REPLACE", arguments -> "REPLACE(" + String.join(", ", arguments) + ")");
-        strategies.put("CAST", arguments -> "CAST(" + arguments.get(0) + " AS " + arguments.get(1) + ")");
-        strategies.put("DATE_TRUNC", arguments -> "DATE_TRUNC(" + String.join(", ", arguments) + ")");
+
+        strategies.put("CONCAT", args -> "concat(" + String.join(", ", args) + ")");
+
+        strategies.put("TRIM",    args -> "trim("    + joinArguments(args, 1) + ")");
+        strategies.put("LTRIM",   args -> "ltrim("   + joinArguments(args, 1) + ")");
+        strategies.put("RTRIM",   args -> "rtrim("   + joinArguments(args, 1) + ")");
+        strategies.put("UPPER",   args -> "upper("   + joinArguments(args, 1) + ")");
+        strategies.put("LOWER",   args -> "lower("   + joinArguments(args, 1) + ")");
+        strategies.put("SUBSTRING", args -> "substring(" + String.join(", ", args) + ")");
+        strategies.put("REPLACE", args -> "replace(" + String.join(", ", args) + ")");
+
+        strategies.put("COALESCE", args -> "coalesce(" + String.join(", ", args) + ")");
+        strategies.put("CAST",     args -> "cast(" + args.get(0) + " as " + args.get(1) + ")");
+
+        strategies.put("ABS",      args -> "abs("    + joinArguments(args, 1) + ")");
+        strategies.put("CEIL",     args -> "ceil("   + joinArguments(args, 1) + ")");
+        strategies.put("CEILING",  args -> "ceil("   + joinArguments(args, 1) + ")");
+
+        strategies.put("FLOOR",    args -> "floor("  + joinArguments(args, 1) + ")");
+        strategies.put("ROUND",    this::round);
+        strategies.put("POWER",    args -> "power("  + String.join(", ", args) + ")");
+        strategies.put("GREATEST", args -> "greatest(" + String.join(", ", args) + ")");
+        strategies.put("LEAST",    args -> "least("    + String.join(", ", args) + ")");
+        strategies.put("MOD",      args -> "mod("    + String.join(", ", args) + ")");
+        strategies.put("SIGN",     args -> "sign("   + joinArguments(args, 1) + ")");
         return new SqlFunctionRegistry(Collections.unmodifiableMap(strategies));
     }
 

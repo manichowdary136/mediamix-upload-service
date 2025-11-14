@@ -16,16 +16,17 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/api/uploads")
 public class FileUploadController {
 
+
     private final FileUploadService fileUploadService;
 
     @PutMapping(
-            path = "/{uploadSessionId}/chunks",
+            path = "/{fileId}/chunks",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public void uploadChunk(@PathVariable Long uploadSessionId,
+    public void uploadChunk(@PathVariable Long fileId,
                             @RequestParam("originalFileName") String originalFileName,
                             @RequestParam("chunkNumber") Integer chunkNumber,
                             @RequestPart("chunk") MultipartFile chunkFile) {
-        fileUploadService.mergeChunk(uploadSessionId, originalFileName, chunkNumber, chunkFile);
+        fileUploadService.mergeChunk(fileId, originalFileName, chunkNumber, chunkFile);
     }
 }
 
