@@ -43,7 +43,30 @@ final class SqlExpressionRenderer implements ExpressionVisitor<String> {
 
     @Override
     public String visitLiteral(LiteralExpression expression) {
-        return expression.value();
+        String value = expression.value();
+        
+        // Handle string literals - convert Excel double quotes to SQL single quotes
+        if (value != null && value.length() >= 2) {
+            // Check if it's a double-quoted string (Excel format)
+            if (value.startsWith("\"") && value.endsWith("\"")) {
+                // Extract content between quotes
+                String content = value.substring(1, value.length() - 1);
+                // Escape single quotes by doubling them (SQL standard)
+                content = content.replace("'", "''");
+                // Return as SQL string literal with single quotes
+                return "'" + content + "'";
+            }
+            // Check if it's already a single-quoted string
+            if (value.startsWith("'") && value.endsWith("'")) {
+                // Already in SQL format, but ensure internal quotes are escaped
+                String content = value.substring(1, value.length() - 1);
+                content = content.replace("'", "''");
+                return "'" + content + "'";
+            }
+        }
+        
+        // For numbers or other literals, return as-is
+        return value;
     }
 
     @Override

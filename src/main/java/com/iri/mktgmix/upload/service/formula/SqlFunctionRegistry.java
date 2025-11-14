@@ -21,73 +21,73 @@ public final class SqlFunctionRegistry {
         Map<String, SqlFunction> strategies = new LinkedHashMap<>();
 
         // String functions - MonetDB equivalents
-        strategies.put("CONCAT", args -> "append(" + String.join(", ", args) + ")");
-        strategies.put("CONCATENATE", args -> "append(" + String.join(", ", args) + ")");
-        strategies.put("TRIM",    args -> "trim("    + joinArguments(args, 1) + ")");
-        strategies.put("LTRIM",   args -> "ltrim("   + joinArguments(args, 1) + ")");
-        strategies.put("RTRIM",   args -> "rtrim("   + joinArguments(args, 1) + ")");
-        strategies.put("UPPER",   args -> "upper("   + joinArguments(args, 1) + ")");
-        strategies.put("LOWER",   args -> "lower("   + joinArguments(args, 1) + ")");
-        strategies.put("LEN",     args -> "length("  + joinArguments(args, 1) + ")");
-        strategies.put("LENGTH",  args -> "length("  + joinArguments(args, 1) + ")");
-        strategies.put("SUBSTRING", args -> "substring(" + String.join(", ", args) + ")");
-        strategies.put("MID",      args -> "substring(" + String.join(", ", args) + ")");
-        strategies.put("LEFT",     args -> "left("    + String.join(", ", args) + ")");
-        strategies.put("RIGHT",    args -> "right("   + String.join(", ", args) + ")");
-        strategies.put("FIND",     this::find);
-        strategies.put("SEARCH",   this::find);
-        strategies.put("REPLACE",  args -> "replace(" + String.join(", ", args) + ")");
-        strategies.put("SUBSTITUTE", args -> "replace(" + String.join(", ", args) + ")");
+        strategies.put("CONCAT", args -> "APPEND(" + String.join(", ", args) + ")");
+        strategies.put("CONCATENATE", args -> "APPEND(" + String.join(", ", args) + ")");
+        strategies.put("TRIM",    args -> "TRIM("    + joinArguments(args, 1) + ")");
+        strategies.put("LTRIM",   args -> "LTRIM("   + joinArguments(args, 1) + ")");
+        strategies.put("RTRIM",   args -> "RTRIM("   + joinArguments(args, 1) + ")");
+        strategies.put("UPPER",   args -> "UPPER("   + joinArguments(args, 1) + ")");
+        strategies.put("LOWER",   args -> "LOWER("   + joinArguments(args, 1) + ")");
+        strategies.put("LEN",     args -> "LENGTH("  + joinArguments(args, 1) + ")");
+        strategies.put("LENGTH",  args -> "LENGTH("  + joinArguments(args, 1) + ")");
+        strategies.put("SUBSTRING", args -> "SUBSTRING(" + String.join(", ", args) + ")");
+        strategies.put("MID",      args -> "SUBSTRING(" + String.join(", ", args) + ")");
+        strategies.put("LEFT",     args -> "LEFT("    + String.join(", ", args) + ")");
+        strategies.put("RIGHT",    args -> "RIGHT("   + String.join(", ", args) + ")");
+        strategies.put("FIND",     SqlFunctionRegistry::find);
+        strategies.put("SEARCH",   SqlFunctionRegistry::find);
+        strategies.put("REPLACE",  args -> "REPLACE(" + String.join(", ", args) + ")");
+        strategies.put("SUBSTITUTE", args -> "REPLACE(" + String.join(", ", args) + ")");
 
         // Type conversion and null handling
-        strategies.put("COALESCE", args -> "coalesce(" + String.join(", ", args) + ")");
-        strategies.put("CAST",     args -> "cast(" + args.get(0) + " as " + args.get(1) + ")");
+        strategies.put("COALESCE", args -> "COALESCE(" + String.join(", ", args) + ")");
+        strategies.put("CAST",     args -> "CAST(" + args.get(0) + " AS " + args.get(1) + ")");
 
         // Mathematical functions - MonetDB equivalents
-        strategies.put("ABS",      args -> "abs("    + joinArguments(args, 1) + ")");
-        strategies.put("CEIL",     args -> "ceil("   + joinArguments(args, 1) + ")");
-        strategies.put("CEILING",  args -> "ceil("   + joinArguments(args, 1) + ")");
-        strategies.put("FLOOR",    args -> "floor("  + joinArguments(args, 1) + ")");
-        strategies.put("ROUND",    this::round);
-        strategies.put("POWER",    args -> "power("  + String.join(", ", args) + ")");
-        strategies.put("SQRT",     args -> "sqrt("   + joinArguments(args, 1) + ")");
-        strategies.put("EXP",      args -> "exp("    + joinArguments(args, 1) + ")");
-        strategies.put("LOG",      args -> "log("    + joinArguments(args, 1) + ")");
-        strategies.put("LOG10",    args -> "log10("  + joinArguments(args, 1) + ")");
-        strategies.put("LN",       args -> "log("    + joinArguments(args, 1) + ")");
-        strategies.put("GREATEST", args -> "greatest(" + String.join(", ", args) + ")");
-        strategies.put("MAX",      args -> "greatest(" + String.join(", ", args) + ")");
-        strategies.put("LEAST",    args -> "least("    + String.join(", ", args) + ")");
-        strategies.put("MIN",      args -> "least("    + String.join(", ", args) + ")");
-        strategies.put("MOD",      args -> "mod("    + String.join(", ", args) + ")");
-        strategies.put("SIGN",     args -> "sign("   + joinArguments(args, 1) + ")");
-        strategies.put("RAND",     args -> args.isEmpty() ? "rand()" : "rand(" + args.get(0) + ")");
-        strategies.put("RANDBETWEEN", this::randBetween);
+        strategies.put("ABS",      args -> "ABS("    + joinArguments(args, 1) + ")");
+        strategies.put("CEIL",     args -> "CEIL("   + joinArguments(args, 1) + ")");
+        strategies.put("CEILING",  args -> "CEIL("   + joinArguments(args, 1) + ")");
+        strategies.put("FLOOR",    args -> "FLOOR("  + joinArguments(args, 1) + ")");
+        strategies.put("ROUND",    SqlFunctionRegistry::round);
+        strategies.put("POWER",    args -> "POWER("  + String.join(", ", args) + ")");
+        strategies.put("SQRT",     args -> "SQRT("   + joinArguments(args, 1) + ")");
+        strategies.put("EXP",      args -> "EXP("    + joinArguments(args, 1) + ")");
+        strategies.put("LOG",      args -> "LOG("    + joinArguments(args, 1) + ")");
+        strategies.put("LOG10",    args -> "LOG10("  + joinArguments(args, 1) + ")");
+        strategies.put("LN",       args -> "LOG("    + joinArguments(args, 1) + ")");
+        strategies.put("GREATEST", args -> "GREATEST(" + String.join(", ", args) + ")");
+        strategies.put("MAX",      args -> "GREATEST(" + String.join(", ", args) + ")");
+        strategies.put("LEAST",    args -> "LEAST("    + String.join(", ", args) + ")");
+        strategies.put("MIN",      args -> "LEAST("    + String.join(", ", args) + ")");
+        strategies.put("MOD",      args -> "MOD("    + String.join(", ", args) + ")");
+        strategies.put("SIGN",     args -> "SIGN("   + joinArguments(args, 1) + ")");
+        strategies.put("RAND",     args -> args.isEmpty() ? "RAND()" : "RAND(" + args.get(0) + ")");
+        strategies.put("RANDBETWEEN", SqlFunctionRegistry::randBetween);
 
         // Trigonometric functions
-        strategies.put("SIN",      args -> "sin("    + joinArguments(args, 1) + ")");
-        strategies.put("COS",      args -> "cos("    + joinArguments(args, 1) + ")");
-        strategies.put("TAN",      args -> "tan("    + joinArguments(args, 1) + ")");
-        strategies.put("ASIN",     args -> "asin("   + joinArguments(args, 1) + ")");
-        strategies.put("ACOS",     args -> "acos("   + joinArguments(args, 1) + ")");
-        strategies.put("ATAN",     args -> "atan("   + joinArguments(args, 1) + ")");
-        strategies.put("ATAN2",    args -> "atan2("  + String.join(", ", args) + ")");
+        strategies.put("SIN",      args -> "SIN("    + joinArguments(args, 1) + ")");
+        strategies.put("COS",      args -> "COS("    + joinArguments(args, 1) + ")");
+        strategies.put("TAN",      args -> "TAN("    + joinArguments(args, 1) + ")");
+        strategies.put("ASIN",     args -> "ASIN("   + joinArguments(args, 1) + ")");
+        strategies.put("ACOS",     args -> "ACOS("   + joinArguments(args, 1) + ")");
+        strategies.put("ATAN",     args -> "ATAN("   + joinArguments(args, 1) + ")");
+        strategies.put("ATAN2",    args -> "ATAN2("  + String.join(", ", args) + ")");
 
         // Date and time functions - MonetDB uses extract()
-        strategies.put("YEAR",     args -> "extract(year from " + joinArguments(args, 1) + ")");
-        strategies.put("MONTH",    args -> "extract(month from " + joinArguments(args, 1) + ")");
-        strategies.put("DAY",      args -> "extract(day from " + joinArguments(args, 1) + ")");
-        strategies.put("HOUR",     args -> "extract(hour from " + joinArguments(args, 1) + ")");
-        strategies.put("MINUTE",   args -> "extract(minute from " + joinArguments(args, 1) + ")");
-        strategies.put("SECOND",   args -> "extract(second from " + joinArguments(args, 1) + ")");
-        strategies.put("NOW",      args -> args.isEmpty() ? "now()" : "now(" + args.get(0) + ")");
-        strategies.put("TODAY",    args -> "current_date");
-        strategies.put("CURRENT_DATE", args -> "current_date");
-        strategies.put("CURRENT_TIME", args -> "current_time");
-        strategies.put("CURRENT_TIMESTAMP", args -> "current_timestamp");
+        strategies.put("YEAR",     args -> "EXTRACT(YEAR FROM " + joinArguments(args, 1) + ")");
+        strategies.put("MONTH",    args -> "EXTRACT(MONTH FROM " + joinArguments(args, 1) + ")");
+        strategies.put("DAY",      args -> "EXTRACT(DAY FROM " + joinArguments(args, 1) + ")");
+        strategies.put("HOUR",     args -> "EXTRACT(HOUR FROM " + joinArguments(args, 1) + ")");
+        strategies.put("MINUTE",   args -> "EXTRACT(MINUTE FROM " + joinArguments(args, 1) + ")");
+        strategies.put("SECOND",   args -> "EXTRACT(SECOND FROM " + joinArguments(args, 1) + ")");
+        strategies.put("NOW",      args -> args.isEmpty() ? "NOW()" : "NOW(" + args.get(0) + ")");
+        strategies.put("TODAY",    args -> "CURRENT_DATE");
+        strategies.put("CURRENT_DATE", args -> "CURRENT_DATE");
+        strategies.put("CURRENT_TIME", args -> "CURRENT_TIME");
+        strategies.put("CURRENT_TIMESTAMP", args -> "CURRENT_TIMESTAMP");
 
         // Logical functions - MonetDB uses CASE WHEN for IF
-        strategies.put("IF",       this::ifFunction);
+        strategies.put("IF",       SqlFunctionRegistry::ifFunction);
         strategies.put("AND",      args -> "(" + String.join(" AND ", args) + ")");
         strategies.put("OR",       args -> "(" + String.join(" OR ", args) + ")");
         strategies.put("NOT",      args -> "NOT (" + joinArguments(args, 1) + ")");
@@ -120,9 +120,9 @@ public final class SqlFunctionRegistry {
             throw new FormulaTranslationException("ROUND requires one or two arguments");
         }
         if (arguments.size() == 1) {
-            return "round(" + arguments.get(0) + ")";
+            return "ROUND(" + arguments.get(0) + ")";
         }
-        return "round(" + arguments.get(0) + ", " + arguments.get(1) + ")";
+        return "ROUND(" + arguments.get(0) + ", " + arguments.get(1) + ")";
     }
 
     private static String find(List<String> arguments) {
@@ -133,10 +133,10 @@ public final class SqlFunctionRegistry {
         // MonetDB: position(substring in string) - returns 1-based position
         // For start_num > 1, we need to use substring to handle offset
         if (arguments.size() == 2) {
-            return "position(" + arguments.get(0) + " in " + arguments.get(1) + ")";
+            return "POSITION(" + arguments.get(0) + " IN " + arguments.get(1) + ")";
         }
         // With start_num, we need to adjust: position(substring in substring(string from start))
-        return "position(" + arguments.get(0) + " in substring(" + arguments.get(1) + ", " + arguments.get(2) + ")) + " + arguments.get(2) + " - 1";
+        return "POSITION(" + arguments.get(0) + " IN SUBSTRING(" + arguments.get(1) + ", " + arguments.get(2) + ")) + " + arguments.get(2) + " - 1";
     }
 
     private static String ifFunction(List<String> arguments) {
@@ -157,7 +157,7 @@ public final class SqlFunctionRegistry {
         }
         // RANDBETWEEN(low, high) in Excel returns integer between low and high inclusive
         // In MonetDB: floor(rand() * (high - low + 1)) + low
-        return "floor(rand() * (" + arguments.get(1) + " - " + arguments.get(0) + " + 1)) + " + arguments.get(0);
+        return "FLOOR(RAND() * (" + arguments.get(1) + " - " + arguments.get(0) + " + 1)) + " + arguments.get(0);
     }
 }
 

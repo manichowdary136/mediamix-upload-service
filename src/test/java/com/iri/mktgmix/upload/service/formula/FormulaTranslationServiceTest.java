@@ -16,7 +16,7 @@ class FormulaTranslationServiceTest {
     void translatesConcatFunction() {
         ColumnFormula formula = ColumnFormula.of("target_AB", "TRIM(CONCAT(UPPER(B3), \" \", LOWER(C3), \" \", \"_\"))");
         String sql = service.translate(formula);
-        assertThat(sql).isEqualTo("TRIM(APPEND(UPPER(B3), \" \", LOWER(C3), \" \", \"_\"))");
+        assertThat(sql).isEqualTo("TRIM(APPEND(UPPER(B3), ' ', LOWER(C3), ' ', '_'))");
     }
 
     @Test
