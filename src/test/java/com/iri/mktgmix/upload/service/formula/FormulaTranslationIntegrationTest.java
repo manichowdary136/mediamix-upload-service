@@ -67,7 +67,6 @@ public class FormulaTranslationIntegrationTest {
         
         String translatedSql = translationService.translate(formula);
         
-        // Replace column references with hardcoded values
         Map<String, String> valueMap = new HashMap<>();
         valueMap.put("B3", "'Hello'");
         valueMap.put("C3", "'WORLD'");
@@ -142,7 +141,7 @@ public class FormulaTranslationIntegrationTest {
         valueMap.put("A1", "DATE '2024-03-15'");
         
         String query = replaceColumnReferences(translatedSql, valueMap);
-        String fullQuery = "SELECT " + query + " AS year";
+        String fullQuery = "SELECT " + query + " AS calendar_year";
         
         System.out.println("Executing query: " + fullQuery);
         

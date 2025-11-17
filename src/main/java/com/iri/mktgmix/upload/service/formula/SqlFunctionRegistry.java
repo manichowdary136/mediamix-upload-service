@@ -21,8 +21,8 @@ public final class SqlFunctionRegistry {
         Map<String, SqlFunction> strategies = new LinkedHashMap<>();
 
         // String functions - MonetDB equivalents
-        strategies.put("CONCAT", args -> "APPEND(" + String.join(", ", args) + ")");
-        strategies.put("CONCATENATE", args -> "APPEND(" + String.join(", ", args) + ")");
+        strategies.put("CONCAT", args -> String.join(" || ", args));
+        strategies.put("CONCATENATE", args -> String.join(" || ", args));
         strategies.put("TRIM",    args -> "TRIM("    + joinArguments(args, 1) + ")");
         strategies.put("LTRIM",   args -> "LTRIM("   + joinArguments(args, 1) + ")");
         strategies.put("RTRIM",   args -> "RTRIM("   + joinArguments(args, 1) + ")");
