@@ -33,6 +33,9 @@ public class SourceColumn {
     @Column(name = "file_upload_id", nullable = false)
     private Long fileUploadId;
 
+    @Column(name = "ordinal", nullable = false)
+    private Integer ordinal = 0;
+
     @Column(name = "name_original", nullable = false, length = 255)
     private String originalName;
 

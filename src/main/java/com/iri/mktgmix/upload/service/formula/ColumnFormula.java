@@ -5,10 +5,14 @@ import java.util.Objects;
 /**
  * Value object representing the mapping between a target column and its source-side formula.
  */
-public final class ColumnFormula {
+public class ColumnFormula {
 
-    private final String targetColumn;
-    private final String formula;
+    private String targetColumn;
+    private String formula;
+
+    public ColumnFormula() {
+        // Default constructor for JSON deserialization
+    }
 
     private ColumnFormula(String targetColumn, String formula) {
         this.targetColumn = targetColumn;
@@ -25,8 +29,16 @@ public final class ColumnFormula {
         return targetColumn;
     }
 
+    public void setTargetColumn(String targetColumn) {
+        this.targetColumn = targetColumn;
+    }
+
     public String getFormula() {
         return formula;
+    }
+
+    public void setFormula(String formula) {
+        this.formula = formula;
     }
 }
 

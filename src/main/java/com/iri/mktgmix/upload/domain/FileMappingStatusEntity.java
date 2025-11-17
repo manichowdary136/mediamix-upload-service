@@ -8,8 +8,6 @@ import lombok.Setter;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -22,20 +20,28 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(schema = "app", name = "upload_session")
-public class UploadSession {
+@Table(schema = "app", name = "file_mapping_status")
+public class FileMappingStatusEntity {
 
     @Id
-    @Column(name = "id", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
     private Long id;
 
-    @Column(name = "project_id", nullable = false)
-    private Long projectId;
+    @Column(name = "file_upload_id", nullable = false)
+    private Long fileUploadId;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 16)
-    private UploadSessionStatus status;
+    @Column(name = "total_required_count", nullable = false)
+    private Integer totalRequiredCount = 0;
+
+    @Column(name = "required_mapped_count", nullable = false)
+    private Integer requiredMappedCount = 0;
+
+    @Column(name = "total_mapped_count", nullable = false)
+    private Integer totalMappedCount = 0;
+
+    @Column(name = "is_marked_as_mapped", nullable = false)
+    private Boolean isMarkedAsMapped = false;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

@@ -17,9 +17,8 @@ public class FileUpload {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "project_id", referencedColumnName = "project_id", nullable = false)
-    private ProjectDetails project;
+    @Column(name = "project_id", nullable = false)
+    private Long projectId;
 
     @Column(name = "original_file_name", nullable = false)
     private String originalFileName;
@@ -39,6 +38,9 @@ public class FileUpload {
     @Column(name = "checksum_sha256", length = 64)
     private String checksumSha256;
 
+    @Column(name = "checksum_source_sha256", length = 64)
+    private String checksumSourceSha256;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "upload_status", nullable = false)
     private FileUploadStatus uploadStatus;
@@ -47,7 +49,10 @@ public class FileUpload {
     @Column(name = "ingest_status")
     private FileIngestStatus ingestStatus;
 
-    @Column(name = "monet_table_name")
+    @Column(name = "csv_path", length = 1024)
+    private String csvPath;
+
+    @Column(name = "monet_table_name", length = 128)
     private String monetTableName;
 
     @Column(name = "row_count", nullable = false)
@@ -73,6 +78,10 @@ public class FileUpload {
 
     @Column(name = "modified_by", length = 100)
     private String modifiedBy;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "driver_details_id", nullable = false)
+    private DriverDetails driverDetails;
 
 }
 

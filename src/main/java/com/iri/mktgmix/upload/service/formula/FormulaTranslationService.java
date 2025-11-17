@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Service layer responsible for translating spreadsheet formulas into SQL fragments.
@@ -42,6 +43,39 @@ public final class FormulaTranslationService {
      */
     public String translate(ColumnFormula formula) {
         return translate(Collections.singletonList(formula)).get(formula.getTargetColumn());
+    }
+
+    /**
+     * Translates a list of formulas into SQL fragments using column mapping.
+     * Column mapping: name_original -> name_sanitized
+     * 
+     * @param formulas List of column formulas to translate
+     * @param columnMapping Map from original column names to sanitized column names
+     * @return Map of targetColumn -> SQL expression
+     */
+    public Map<String, String> translate(List<ColumnFormula> formulas, Map<String, String> columnMapping) {
+        Objects.requireNonNull(formulas, "formulas must not be null");
+        Objects.requireNonNull(columnMapping, "columnMapping must not be null");
+        
+        Map<String, String> results = new LinkedHashMap<>();
+        SqlExpressionRenderer renderer = new SqlExpressionRenderer(functionRegistry, columnMapping);
+        
+        for (ColumnFormula formula : formulas) {
+            String formulaValue = formula.getFormula();
+            String targetColumn = formula.getTargetColumn();
+            String sanitizedName = Optional.ofNullable(columnMapping.get(targetColumn))
+            .orElse(targetColumn);
+            
+            String sqlExpression = Optional.ofNullable(formulaValue)
+            .map(FormulaParser::parse).map(renderer::render)
+            .orElse(sanitizedName);
+        
+                results.put(targetColumn, sqlExpression);
+            
+
+        }
+        
+        return Collections.unmodifiableMap(results);
     }
 }
 

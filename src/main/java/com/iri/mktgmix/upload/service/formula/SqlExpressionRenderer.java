@@ -11,7 +11,9 @@ import com.iri.mktgmix.upload.service.formula.FormulaParser.TokenType;
 import com.iri.mktgmix.upload.service.formula.FormulaParser.UnaryExpression;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * AST visitor that renders a parsed formula expression as an equivalent SQL fragment.
@@ -19,9 +21,16 @@ import java.util.List;
 final class SqlExpressionRenderer implements ExpressionVisitor<String> {
 
     private final SqlFunctionRegistry functionRegistry;
+    private final Map<String, String> columnMapping;
 
     SqlExpressionRenderer(SqlFunctionRegistry functionRegistry) {
         this.functionRegistry = functionRegistry;
+        this.columnMapping = Collections.emptyMap();
+    }
+
+    SqlExpressionRenderer(SqlFunctionRegistry functionRegistry, Map<String, String> columnMapping) {
+        this.functionRegistry = functionRegistry;
+        this.columnMapping = columnMapping != null ? columnMapping : Collections.emptyMap();
     }
 
     String render(Expression expression) {
@@ -71,8 +80,9 @@ final class SqlExpressionRenderer implements ExpressionVisitor<String> {
 
     @Override
     public String visitColumn(ColumnExpression expression) {
-        String key = expression.columnReference();
-        return key;
+        String nameOriginal = expression.columnReference();
+        // If column mapping is provided, map original name to sanitized name
+        return Optional.ofNullable(columnMapping.get(nameOriginal)).orElse(nameOriginal);
     }
 
     @Override
