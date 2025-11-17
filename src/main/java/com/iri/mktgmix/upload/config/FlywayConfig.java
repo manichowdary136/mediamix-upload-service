@@ -1,7 +1,6 @@
 package com.iri.mktgmix.upload.config;
 
 import org.flywaydb.core.Flyway;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.flyway.FlywayMigrationInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,26 +11,21 @@ import javax.sql.DataSource;
 
 /**
  * Configuration for Flyway migrations.
- * Only enables Flyway when connecting to PostgreSQL, skips for MonetDB.
- * 
- * This configuration class is only loaded when the datasource URL contains 'postgresql'.
- * When loaded, it creates a Flyway bean and runs migrations.
- * For MonetDB connections, this configuration won't be loaded, and Flyway will remain
- * disabled (as set in application.properties: spring.flyway.enabled=false).
+ * Uses PostgreSQL DataSource (primary) for running migrations.
+ * MonetDB is not used for Flyway migrations.
  */
 @Configuration
-@ConditionalOnExpression("'${spring.datasource.url:}'.contains('postgresql')")
 public class FlywayConfig {
 
     /**
-     * Creates Flyway bean only for PostgreSQL.
-     * This bean is only created when datasource URL contains 'postgresql'.
+     * Creates Flyway bean using PostgreSQL DataSource.
+     * Migrations run only on PostgreSQL, not on MonetDB.
      */
     @Bean(initMethod = "migrate")
     @Primary
-    public Flyway flyway(DataSource dataSource) {
+    public Flyway flyway(@org.springframework.beans.factory.annotation.Qualifier("postgresDataSource") DataSource postgresDataSource) {
         return Flyway.configure()
-                .dataSource(dataSource)
+                .dataSource(postgresDataSource)
                 .defaultSchema("app")
                 .schemas("app", "meta")
                 .locations("classpath:db/migration")

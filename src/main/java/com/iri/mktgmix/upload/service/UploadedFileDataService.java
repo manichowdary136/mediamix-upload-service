@@ -7,6 +7,7 @@ import com.iri.mktgmix.upload.repository.SourceColumnRepository;
 import com.iri.mktgmix.upload.service.dto.FileDataRequest;
 import com.iri.mktgmix.upload.service.formula.FormulaTranslationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -20,18 +21,18 @@ public class UploadedFileDataService {
     private final FileUploadRepository fileUploadRepository;
     private final SourceColumnRepository sourceColumnRepository;
     private final FormulaTranslationService formulaTranslationService;
-    private final JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate monetJdbcTemplate;
 
     @Autowired
     public UploadedFileDataService(
             FileUploadRepository fileUploadRepository,
             SourceColumnRepository sourceColumnRepository,
             FormulaTranslationService formulaTranslationService,
-            JdbcTemplate jdbcTemplate) {
+            @Qualifier("monetJdbcTemplate") JdbcTemplate monetJdbcTemplate) {
         this.fileUploadRepository = fileUploadRepository;
         this.sourceColumnRepository = sourceColumnRepository;
         this.formulaTranslationService = formulaTranslationService;
-        this.jdbcTemplate = jdbcTemplate;
+        this.monetJdbcTemplate = monetJdbcTemplate;
     }
 
     /**
@@ -72,7 +73,7 @@ public class UploadedFileDataService {
         String sql = "SELECT " + selectClause + " FROM " + fileUpload.getMonetTableName();
         
         // Step 5: Execute against MonetDB using JdbcTemplate
-        List<Map<String, Object>> results = jdbcTemplate.queryForList(sql);
+        List<Map<String, Object>> results = monetJdbcTemplate.queryForList(sql);
         
         return results;
     }
