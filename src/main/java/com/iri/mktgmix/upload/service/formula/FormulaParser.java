@@ -244,6 +244,13 @@ final class FormulaParser {
                     tokens.add(new Token(TokenType.STRING, literalSingle));
                     index = closingSingle + 1;
                     break;
+                case '[':
+                    // Handle bracketed column names like [sub brand] for columns with spaces
+                    int closingBracket = readBracketedIdentifier(input, index + 1);
+                    String bracketedName = input.substring(index + 1, closingBracket).trim();
+                    tokens.add(new Token(TokenType.IDENTIFIER, bracketedName));
+                    index = closingBracket + 1;
+                    break;
                 default:
                     if (Character.isDigit(current) || current == '.') {
                         int start = index;
@@ -313,6 +320,22 @@ final class FormulaParser {
             index++;
         }
         throw new FormulaTranslationException("Unterminated string literal in formula");
+    }
+
+    private static int readBracketedIdentifier(String input, int start) {
+        int index = start;
+        int length = input.length();
+        while (index < length) {
+            char current = input.charAt(index);
+            if (current == ']') {
+                return index;
+            }
+            if (current == '\\') {
+                index++; // Skip escaped character
+            }
+            index++;
+        }
+        throw new FormulaTranslationException("Unclosed bracket in column name");
     }
 
     enum TokenType {
