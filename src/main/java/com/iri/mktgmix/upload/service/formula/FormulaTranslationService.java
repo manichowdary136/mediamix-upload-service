@@ -1,6 +1,7 @@
 package com.iri.mktgmix.upload.service.formula;
 
 import com.iri.mktgmix.upload.service.formula.FormulaParser.Expression;
+import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -12,6 +13,7 @@ import java.util.Optional;
 /**
  * Service layer responsible for translating spreadsheet formulas into SQL fragments.
  */
+@Service
 public final class FormulaTranslationService {
 
     private final SqlFunctionRegistry functionRegistry;

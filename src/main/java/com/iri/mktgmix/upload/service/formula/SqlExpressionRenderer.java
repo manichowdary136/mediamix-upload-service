@@ -10,10 +10,7 @@ import com.iri.mktgmix.upload.service.formula.FormulaParser.Token;
 import com.iri.mktgmix.upload.service.formula.FormulaParser.TokenType;
 import com.iri.mktgmix.upload.service.formula.FormulaParser.UnaryExpression;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * AST visitor that renders a parsed formula expression as an equivalent SQL fragment.
