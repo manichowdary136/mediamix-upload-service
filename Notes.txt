@@ -1,0 +1,22 @@
+Formula =CONCAT(SourceData[@[Sub Brands]],SourceData[@[Project Geography]])
+
+{
+    "columns": [
+        {
+            "targetColumnId": 962,
+            "sourceColumnId": 716,
+            "mappingType": "UNMAPPED"
+        },
+        {
+            "targetColumnId": 949,
+            "sourceColumnId": 717,
+            "mappingType": "BASIC"
+        },
+        {
+            "targetColumnId": 949,
+            "sourceColumnId": 717,
+            "advancedFormula": "=CONCAT(SourceData[@[Sub Brands]])",
+            "mappingType": "ADVANCED"
+        }
+    ]
+}
