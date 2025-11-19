@@ -259,7 +259,28 @@ final class FormulaParser {
                     } else if (isIdentifierStart(current)) {
                         int start = index;
                         index = readIdentifier(input, index);
-                        tokens.add(new Token(TokenType.IDENTIFIER, input.substring(start, index)));
+                        String identifier = input.substring(start, index);
+                        
+                        if ("SourceData".equals(identifier)) {
+                            int savedIndex = index;
+                            while (savedIndex < length && Character.isWhitespace(input.charAt(savedIndex))) {
+                                savedIndex++;
+                            }
+                            if (savedIndex + 2 < length && 
+                                input.charAt(savedIndex) == '[' && 
+                                input.charAt(savedIndex + 1) == '@' && 
+                                input.charAt(savedIndex + 2) == '[') {
+                                int columnStart = savedIndex + 3;
+                                int columnEnd = readSourceDataColumnReference(input, columnStart);
+                                String columnName = input.substring(columnStart, columnEnd).trim();
+                                tokens.add(new Token(TokenType.IDENTIFIER, columnName));
+                                index = columnEnd + 2;
+                            } else {
+                                tokens.add(new Token(TokenType.IDENTIFIER, identifier));
+                            }
+                        } else {
+                            tokens.add(new Token(TokenType.IDENTIFIER, identifier));
+                        }
                     } else {
                         throw new FormulaTranslationException("Unsupported character in formula: " + current);
                     }
@@ -336,6 +357,22 @@ final class FormulaParser {
             index++;
         }
         throw new FormulaTranslationException("Unclosed bracket in column name");
+    }
+
+    private static int readSourceDataColumnReference(String input, int start) {
+        int index = start;
+        int length = input.length();
+        while (index < length) {
+            char current = input.charAt(index);
+            if (current == ']' && index + 1 < length && input.charAt(index + 1) == ']') {
+                return index;
+            }
+            if (current == '\\') {
+                index++;
+            }
+            index++;
+        }
+        throw new FormulaTranslationException("Unclosed bracket in SourceData column reference");
     }
 
     enum TokenType {

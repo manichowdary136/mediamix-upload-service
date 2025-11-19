@@ -34,8 +34,22 @@ public final class FormulaTranslationService {
         Map<String, String> results = new LinkedHashMap<>();
         SqlExpressionRenderer renderer = new SqlExpressionRenderer(functionRegistry);
         for (ColumnFormula formula : formulas) {
-            Expression expression = FormulaParser.parse(formula.getFormula());
-            results.put(formula.getTargetColumn(), renderer.render(expression));
+            String targetColumn = formula.getTargetColumn();
+            try {
+                Expression expression = FormulaParser.parse(formula.getFormula());
+                results.put(targetColumn, renderer.render(expression));
+            } catch (FormulaTranslationException e) {
+                if (e.getTargetColumn() == null) {
+                    throw FormulaTranslationException.withTargetColumn(e.getMessage(), targetColumn, e);
+                }
+                throw e;
+            } catch (RuntimeException e) {
+                throw FormulaTranslationException.withTargetColumn(
+                    e.getMessage() != null ? e.getMessage() : "Unexpected error during formula translation",
+                    targetColumn,
+                    e
+                );
+            }
         }
         return Collections.unmodifiableMap(results);
     }
@@ -66,15 +80,40 @@ public final class FormulaTranslationService {
             String formulaValue = formula.getFormula();
             String targetColumn = formula.getTargetColumn();
             String sanitizedName = Optional.ofNullable(columnMapping.get(targetColumn))
-            .orElse(targetColumn);
+                .orElse(targetColumn);
             
-            String sqlExpression = Optional.ofNullable(formulaValue)
-            .map(FormulaParser::parse).map(renderer::render)
-            .orElse(sanitizedName);
-        
+            try {
+                String sqlExpression = Optional.ofNullable(formulaValue)
+                    .filter(s -> !s.trim().isEmpty())
+                    .map(f -> {
+                        try {
+                            Expression expression = FormulaParser.parse(f);
+                            return renderer.render(expression);
+                        } catch (FormulaTranslationException e) {
+                            if (e.getTargetColumn() == null) {
+                                throw FormulaTranslationException.withTargetColumn(e.getMessage(), targetColumn, e);
+                            }
+                            throw e;
+                        } catch (RuntimeException e) {
+                            throw FormulaTranslationException.withTargetColumn(
+                                e.getMessage() != null ? e.getMessage() : "Unexpected error during formula translation",
+                                targetColumn,
+                                e
+                            );
+                        }
+                    })
+                    .orElse(sanitizedName);
+                
                 results.put(targetColumn, sqlExpression);
-            
-
+            } catch (FormulaTranslationException e) {
+                throw e;
+            } catch (RuntimeException e) {
+                throw FormulaTranslationException.withTargetColumn(
+                    e.getMessage() != null ? e.getMessage() : "Unexpected error during formula translation",
+                    targetColumn,
+                    e
+                );
+            }
         }
         
         return Collections.unmodifiableMap(results);
