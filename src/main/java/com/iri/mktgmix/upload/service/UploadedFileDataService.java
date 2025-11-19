@@ -1,12 +1,16 @@
 package com.iri.mktgmix.upload.service;
 
+import com.iri.mktgmix.upload.domain.DriverIterativeColumnMap;
 import com.iri.mktgmix.upload.domain.FileUpload;
 import com.iri.mktgmix.upload.domain.SourceColumn;
+import com.iri.mktgmix.upload.repository.DriverIterativeColumnMapRepository;
 import com.iri.mktgmix.upload.repository.FileUploadRepository;
 import com.iri.mktgmix.upload.repository.SourceColumnRepository;
+import com.iri.mktgmix.upload.service.dto.ColumnMappingRequest;
 import com.iri.mktgmix.upload.service.dto.FileDataRequest;
 import com.iri.mktgmix.upload.service.exception.ErrorType;
 import com.iri.mktgmix.upload.service.exception.UploadedFileDataException;
+import com.iri.mktgmix.upload.service.formula.ColumnFormula;
 import com.iri.mktgmix.upload.service.formula.FormulaTranslationException;
 import com.iri.mktgmix.upload.service.formula.FormulaTranslationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +18,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -23,6 +28,7 @@ public class UploadedFileDataService {
 
     private final FileUploadRepository fileUploadRepository;
     private final SourceColumnRepository sourceColumnRepository;
+    private final DriverIterativeColumnMapRepository driverIterativeColumnMapRepository;
     private final FormulaTranslationService formulaTranslationService;
     private final JdbcTemplate monetJdbcTemplate;
 
@@ -30,42 +36,78 @@ public class UploadedFileDataService {
     public UploadedFileDataService(
             FileUploadRepository fileUploadRepository,
             SourceColumnRepository sourceColumnRepository,
+            DriverIterativeColumnMapRepository driverIterativeColumnMapRepository,
             FormulaTranslationService formulaTranslationService,
             @Qualifier("monetJdbcTemplate") JdbcTemplate monetJdbcTemplate) {
         this.fileUploadRepository = fileUploadRepository;
         this.sourceColumnRepository = sourceColumnRepository;
+        this.driverIterativeColumnMapRepository = driverIterativeColumnMapRepository;
         this.formulaTranslationService = formulaTranslationService;
         this.monetJdbcTemplate = monetJdbcTemplate;
     }
 
-    public List<Map<String, Object>> getFileData(FileDataRequest request) {
+    public List<Map<String, Object>> getFileData(Long fileUploadId, FileDataRequest request) {
         try {
-            Long fileId = request.getFileId();
+            FileUpload fileUpload = fileUploadRepository.findById(fileUploadId)
+                    .orElseThrow(() -> new UploadedFileDataException(
+                        ErrorType.OTHER,
+                        "FileUpload not found for fileUploadId: " + fileUploadId
+                    ));
             
-            List<SourceColumn> sourceColumns = sourceColumnRepository.findByFileUploadId(fileId);
-            if (sourceColumns.isEmpty()) {
+            Long driverDetailsId = fileUpload.getDriverDetails().getId();
+            List<DriverIterativeColumnMap> driverColumnMaps = driverIterativeColumnMapRepository
+                    .findByDriverId(driverDetailsId.intValue());
+            
+            if (driverColumnMaps.isEmpty()) {
                 throw new UploadedFileDataException(
                     ErrorType.OTHER,
-                    "No columns found for fileId: " + fileId
+                    "No driver column maps found for driverId: " + driverDetailsId
                 );
             }
             
-            Map<String, String> columnMapping = sourceColumns.stream()
+            Map<Long, DriverIterativeColumnMap> columnMapById = driverColumnMaps.stream()
+                    .collect(Collectors.toMap(
+                            DriverIterativeColumnMap::getId,
+                            map -> map,
+                            (existing, replacement) -> existing
+                    ));
+            
+            List<SourceColumn> sourceColumns = sourceColumnRepository.findByFileUploadId(fileUploadId);
+            if (sourceColumns.isEmpty()) {
+                throw new UploadedFileDataException(
+                    ErrorType.OTHER,
+                    "No columns found for fileUploadId: " + fileUploadId
+                );
+            }
+            
+            Map<String, String> sourceColumnMapping = sourceColumns.stream()
                     .collect(Collectors.toMap(
                             SourceColumn::getOriginalName,
                             SourceColumn::getSanitizedName,
                             (existing, replacement) -> existing
                     ));
             
-            FileUpload fileUpload = fileUploadRepository.findById(fileId)
-                    .orElseThrow(() -> new UploadedFileDataException(
+            List<ColumnFormula> columnFormulas = new ArrayList<>();
+            for (ColumnMappingRequest columnRequest : request.getColumns()) {
+                Long targetColumnId = columnRequest.getTargetColumnId();
+                DriverIterativeColumnMap driverColumnMap = columnMapById.get(targetColumnId);
+                
+                if (driverColumnMap == null) {
+                    throw new UploadedFileDataException(
                         ErrorType.OTHER,
-                        "FileUpload not found for fileId: " + fileId
-                    ));
+                        "Driver column map not found for targetColumnId: " + targetColumnId
+                    );
+                }
+                
+                String formula = columnRequest.getAdvancedFormula();
+                
+                String targetColumn = driverColumnMap.getColumnName();
+                columnFormulas.add(ColumnFormula.of(targetColumn, formula));
+            }
             
             Map<String, String> translatedExpressions = formulaTranslationService.translate(
-                    request.getInputColumns(),
-                    columnMapping
+                    columnFormulas,
+                    sourceColumnMapping
             );
             
             String selectClause = buildSelectClause(translatedExpressions);

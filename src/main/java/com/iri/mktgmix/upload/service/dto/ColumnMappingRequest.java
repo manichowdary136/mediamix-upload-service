@@ -5,13 +5,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class FileDataRequest {
-    private List<ColumnMappingRequest> columns;
+public class ColumnMappingRequest {
+    private Long targetColumnId;
+    private String mappingType;
+    private String advancedFormula;
 }
 
