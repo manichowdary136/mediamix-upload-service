@@ -245,12 +245,10 @@ final class FormulaParser {
                     index = closingSingle + 1;
                     break;
                 case '[':
-                    // Handle bracketed column names like [sub brand] for columns with spaces
-                    int closingBracket = readBracketedIdentifier(input, index + 1);
-                    String bracketedName = input.substring(index + 1, closingBracket).trim();
-                    tokens.add(new Token(TokenType.IDENTIFIER, bracketedName));
-                    index = closingBracket + 1;
-                    break;
+                    throw new FormulaTranslationException(
+                        "Column references must follow SourceData[@Column] or SourceData[@[space column]] format. " +
+                        "Standalone bracket notation is not supported."
+                    );
                 default:
                     if (Character.isDigit(current) || current == '.') {
                         int start = index;
@@ -266,15 +264,23 @@ final class FormulaParser {
                             while (savedIndex < length && Character.isWhitespace(input.charAt(savedIndex))) {
                                 savedIndex++;
                             }
-                            if (savedIndex + 2 < length && 
+                            if (savedIndex + 1 < length && 
                                 input.charAt(savedIndex) == '[' && 
-                                input.charAt(savedIndex + 1) == '@' && 
-                                input.charAt(savedIndex + 2) == '[') {
-                                int columnStart = savedIndex + 3;
-                                int columnEnd = readSourceDataColumnReference(input, columnStart);
-                                String columnName = input.substring(columnStart, columnEnd).trim();
-                                tokens.add(new Token(TokenType.IDENTIFIER, columnName));
-                                index = columnEnd + 2;
+                                input.charAt(savedIndex + 1) == '@') {
+                                
+                                if (savedIndex + 2 < length && input.charAt(savedIndex + 2) == '[') {
+                                    int columnStart = savedIndex + 3;
+                                    int columnEnd = readSourceDataColumnReference(input, columnStart);
+                                    String columnName = input.substring(columnStart, columnEnd).trim();
+                                    tokens.add(new Token(TokenType.IDENTIFIER, columnName));
+                                    index = columnEnd + 2;
+                                } else {
+                                    int columnStart = savedIndex + 2;
+                                    int columnEnd = readSourceDataSimpleColumnReference(input, columnStart);
+                                    String columnName = input.substring(columnStart, columnEnd).trim();
+                                    tokens.add(new Token(TokenType.IDENTIFIER, columnName));
+                                    index = columnEnd + 1;
+                                }
                             } else {
                                 tokens.add(new Token(TokenType.IDENTIFIER, identifier));
                             }
@@ -369,6 +375,25 @@ final class FormulaParser {
             }
             if (current == '\\') {
                 index++;
+            }
+            index++;
+        }
+        throw new FormulaTranslationException("Unclosed bracket in SourceData column reference");
+    }
+
+    private static int readSourceDataSimpleColumnReference(String input, int start) {
+        int index = start;
+        int length = input.length();
+        while (index < length) {
+            char current = input.charAt(index);
+            if (current == ']') {
+                return index;
+            }
+            if (!isIdentifierPart(current)) {
+                throw new FormulaTranslationException(
+                    "Invalid character in SourceData[@Column] format. Column names without spaces should contain only alphanumeric characters, underscores, and dollar signs. " +
+                    "For column names with spaces, use SourceData[@[space column]] format."
+                );
             }
             index++;
         }
