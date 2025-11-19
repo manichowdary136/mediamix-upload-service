@@ -5,12 +5,15 @@ import com.iri.mktgmix.upload.domain.SourceColumn;
 import com.iri.mktgmix.upload.repository.FileUploadRepository;
 import com.iri.mktgmix.upload.repository.SourceColumnRepository;
 import com.iri.mktgmix.upload.service.dto.FileDataRequest;
+import com.iri.mktgmix.upload.service.exception.ErrorType;
+import com.iri.mktgmix.upload.service.exception.UploadedFileDataException;
+import com.iri.mktgmix.upload.service.formula.FormulaTranslationException;
 import com.iri.mktgmix.upload.service.formula.FormulaTranslationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -35,78 +38,113 @@ public class UploadedFileDataService {
         this.monetJdbcTemplate = monetJdbcTemplate;
     }
 
-    /**
-     * Retrieves file data from MonetDB table based on fileId and input columns with formulas.
-     * 
-     * @param request Request containing fileId and list of ColumnFormula
-     * @return List of Map<String, Object> representing rows from the MonetDB table
-     */
     public List<Map<String, Object>> getFileData(FileDataRequest request) {
-        Long fileId = request.getFileId();
-        
-        // Step 2: Get name_sanitized and name_original for given fileId
-        List<SourceColumn> sourceColumns = sourceColumnRepository.findByFileUploadId(fileId);
-        if (sourceColumns.isEmpty()) {
-            throw new IllegalArgumentException("No columns found for fileId: " + fileId);
+        try {
+            Long fileId = request.getFileId();
+            
+            List<SourceColumn> sourceColumns = sourceColumnRepository.findByFileUploadId(fileId);
+            if (sourceColumns.isEmpty()) {
+                throw new UploadedFileDataException(
+                    ErrorType.OTHER,
+                    "No columns found for fileId: " + fileId
+                );
+            }
+            
+            Map<String, String> columnMapping = sourceColumns.stream()
+                    .collect(Collectors.toMap(
+                            SourceColumn::getOriginalName,
+                            SourceColumn::getSanitizedName,
+                            (existing, replacement) -> existing
+                    ));
+            
+            FileUpload fileUpload = fileUploadRepository.findById(fileId)
+                    .orElseThrow(() -> new UploadedFileDataException(
+                        ErrorType.OTHER,
+                        "FileUpload not found for fileId: " + fileId
+                    ));
+            
+            Map<String, String> translatedExpressions = formulaTranslationService.translate(
+                    request.getInputColumns(),
+                    columnMapping
+            );
+            
+            String selectClause = buildSelectClause(translatedExpressions);
+            String sql = "SELECT " + selectClause + " FROM " + fileUpload.getMonetTableName();
+            
+            List<Map<String, Object>> results = monetJdbcTemplate.queryForList(sql);
+            
+            return results;
+        } catch (FormulaTranslationException e) {
+            throw new UploadedFileDataException(
+                ErrorType.INVALID_INPUT_FORMULA_ERROR,
+                getExceptionMessage(e, "Formula translation error occurred"),
+                e
+            );
+        } catch (DataAccessException e) {
+            throw new UploadedFileDataException(
+                ErrorType.DB_TRANSLATION_ERROR,
+                getExceptionMessage(e, "Database error occurred"),
+                e
+            );
+        } catch (UploadedFileDataException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new UploadedFileDataException(
+                ErrorType.OTHER,
+                getExceptionMessage(e, "An unexpected error occurred"),
+                e
+            );
         }
-        
-        // Build column mapping: name_original -> name_sanitized
-        Map<String, String> columnMapping = sourceColumns.stream()
-                .collect(Collectors.toMap(
-                        SourceColumn::getOriginalName,
-                        SourceColumn::getSanitizedName,
-                        (existing, replacement) -> existing // Handle duplicates if any
-                ));
-        
-        // Step 3: Get monet_table_name from file_upload
-        FileUpload fileUpload = fileUploadRepository.findById(fileId)
-                .orElseThrow(() -> new IllegalArgumentException("FileUpload not found for fileId: " + fileId));
-        
-        // Step 3: Call FormulaTranslationService.translate with formulas and column mapping
-        Map<String, String> translatedExpressions = formulaTranslationService.translate(
-                request.getInputColumns(),
-                columnMapping
-        );
-        
-        // Step 4: Build SELECT query for all columns
-        String selectClause = buildSelectClause(translatedExpressions);
-        String sql = "SELECT " + selectClause + " FROM " + fileUpload.getMonetTableName();
-        
-        // Step 5: Execute against MonetDB using JdbcTemplate
-        List<Map<String, Object>> results = monetJdbcTemplate.queryForList(sql);
-        
-        return results;
     }
 
-    /**
-     * Builds the SELECT clause from translated expressions.
-     * Format: "expression1 AS targetColumn1, expression2 AS targetColumn2, ..."
-     */
     private String buildSelectClause(Map<String, String> translatedExpressions) {
         if (translatedExpressions.isEmpty()) {
-            throw new IllegalArgumentException("No translated expressions to build SELECT clause");
+            throw new UploadedFileDataException(
+                ErrorType.OTHER,
+                "No translated expressions to build SELECT clause"
+            );
         }
         
         return translatedExpressions.entrySet().stream()
                 .map(entry -> {
                     String expression = entry.getValue();
                     String targetColumn = entry.getKey();
-                    // Escape column names if needed (MonetDB uses double quotes for identifiers)
                     String escapedColumn = escapeIdentifier(targetColumn);
                     return expression + " AS " + escapedColumn;
                 })
                 .collect(Collectors.joining(", "));
     }
 
-    /**
-     * Escapes SQL identifier for MonetDB (uses double quotes).
-     */
     private String escapeIdentifier(String identifier) {
         if (identifier == null || identifier.isEmpty()) {
             return identifier;
         }
-        // Replace double quotes with escaped double quotes and wrap in double quotes
         return "\"" + identifier.replace("\"", "\"\"") + "\"";
+    }
+
+    private String getExceptionMessage(Exception exception, String defaultMessage) {
+        if (exception == null) {
+            return defaultMessage;
+        }
+        
+        if (exception.getMessage() != null && !exception.getMessage().trim().isEmpty()) {
+            return exception.getMessage();
+        }
+        
+        if (exception instanceof DataAccessException) {
+            DataAccessException dae = (DataAccessException) exception;
+            Throwable rootCause = dae.getRootCause();
+            if (rootCause != null && rootCause.getMessage() != null && !rootCause.getMessage().trim().isEmpty()) {
+                return rootCause.getMessage();
+            }
+        }
+        
+        Throwable cause = exception.getCause();
+        if (cause != null && cause.getMessage() != null && !cause.getMessage().trim().isEmpty()) {
+            return cause.getMessage();
+        }
+        
+        return defaultMessage;
     }
 }
 
