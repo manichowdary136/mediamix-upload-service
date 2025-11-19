@@ -79,7 +79,8 @@ final class SqlExpressionRenderer implements ExpressionVisitor<String> {
     public String visitColumn(ColumnExpression expression) {
         String nameOriginal = expression.columnReference();
         // If column mapping is provided, map original name to sanitized name
-        return Optional.ofNullable(columnMapping.get(nameOriginal)).orElse(nameOriginal);
+        return Optional.ofNullable(columnMapping.get(nameOriginal))
+                .orElseThrow(() -> new IllegalArgumentException(String.format("%s not found in DB column mapping", nameOriginal)));
     }
 
     @Override
