@@ -78,19 +78,7 @@ final class SqlExpressionRenderer implements ExpressionVisitor<String> {
     @Override
     public String visitColumn(ColumnExpression expression) {
         String nameOriginal = expression.columnReference();
-        
-        // Handle array notation pattern: source_data[index]
-        if (nameOriginal != null && nameOriginal.startsWith("source_data[") && nameOriginal.endsWith("]")) {
-            // Look up in column mapping (which should contain source_data[index] -> sanitized_name)
-            String sanitizedName = columnMapping.get(nameOriginal);
-            if (sanitizedName != null) {
-                return sanitizedName;
-            }
-            // If not found, return as-is (should not happen in practice)
-            return nameOriginal;
-        }
-        
-        // Regular column name mapping: name_original -> name_sanitized
+        // If column mapping is provided, map original name to sanitized name
         return Optional.ofNullable(columnMapping.get(nameOriginal)).orElse(nameOriginal);
     }
 

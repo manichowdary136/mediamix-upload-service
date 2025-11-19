@@ -245,28 +245,10 @@ final class FormulaParser {
                     index = closingSingle + 1;
                     break;
                 case '[':
-                    // Handle two patterns:
-                    // 1. Array notation: [source_data[0]] - represents column by index
-                    // 2. Column names with spaces: [sub brand] - represents column name directly
+                    // Handle bracketed column names like [sub brand] for columns with spaces
                     int closingBracket = readBracketedIdentifier(input, index + 1);
-                    String bracketedContent = input.substring(index + 1, closingBracket).trim();
-                    
-                    // Check if it's array notation pattern: source_data[number]
-                    if (bracketedContent.startsWith("source_data[") && bracketedContent.endsWith("]")) {
-                        // Extract the index number
-                        String indexStr = bracketedContent.substring("source_data[".length(), bracketedContent.length() - 1).trim();
-                        try {
-                            int arrayIndex = Integer.parseInt(indexStr);
-                            // Store as special identifier with array index
-                            tokens.add(new Token(TokenType.IDENTIFIER, "source_data[" + arrayIndex + "]"));
-                        } catch (NumberFormatException e) {
-                            // Not a valid number, treat as regular identifier
-                            tokens.add(new Token(TokenType.IDENTIFIER, bracketedContent));
-                        }
-                    } else {
-                        // Regular bracketed column name
-                        tokens.add(new Token(TokenType.IDENTIFIER, bracketedContent));
-                    }
+                    String bracketedName = input.substring(index + 1, closingBracket).trim();
+                    tokens.add(new Token(TokenType.IDENTIFIER, bracketedName));
                     index = closingBracket + 1;
                     break;
                 default:
