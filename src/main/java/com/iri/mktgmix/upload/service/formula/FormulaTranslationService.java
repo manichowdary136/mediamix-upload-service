@@ -53,28 +53,39 @@ public final class FormulaTranslationService {
      * 
      * @param formulas List of column formulas to translate
      * @param columnMapping Map from original column names to sanitized column names
-     * @return Map of targetColumn -> SQL expression
+     * @return Map of targetColumn (Object - can be ID or name) -> SQL expression
      */
-    public Map<String, String> translate(List<ColumnFormula> formulas, Map<String, String> columnMapping) {
+    public Map<Object, String> translate(List<ColumnFormula> formulas, Map<String, String> columnMapping) {
         Objects.requireNonNull(formulas, "formulas must not be null");
         Objects.requireNonNull(columnMapping, "columnMapping must not be null");
         
-        Map<String, String> results = new LinkedHashMap<>();
+        Map<Object, String> results = new LinkedHashMap<>();
         SqlExpressionRenderer renderer = new SqlExpressionRenderer(functionRegistry, columnMapping);
         
         for (ColumnFormula formula : formulas) {
             String formulaValue = formula.getFormula();
-            String targetColumn = formula.getTargetColumn();
-            String sanitizedName = Optional.ofNullable(columnMapping.get(targetColumn))
-            .orElse(targetColumn);
+            Object targetColumn = formula.getTargetColumn();
             
             String sqlExpression = Optional.ofNullable(formulaValue)
-            .map(FormulaParser::parse).map(renderer::render)
-            .orElse(sanitizedName);
-        
-                results.put(targetColumn, sqlExpression);
+                    .filter(s -> !s.trim().isEmpty())
+                    .map(FormulaParser::parse)
+                    .map(renderer::render)
+                    .orElse(null); // Will be handled below
             
-
+            // If formula is empty/null, we need to determine the sanitized name
+            // This should not happen in practice, but handle it gracefully
+            if (sqlExpression == null) {
+                String targetColumnName = formula.getTargetColumnName();
+                if (targetColumnName != null) {
+                    sqlExpression = Optional.ofNullable(columnMapping.get(targetColumnName))
+                            .orElse(targetColumnName);
+                } else {
+                    // Fallback: use targetColumn as string
+                    sqlExpression = targetColumn != null ? targetColumn.toString() : "";
+                }
+            }
+            
+            results.put(targetColumn, sqlExpression);
         }
         
         return Collections.unmodifiableMap(results);
